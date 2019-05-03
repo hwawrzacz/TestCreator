@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TestCreator
 {
-    class Question
+    public class Question
     {
         #region Properties
 
@@ -32,6 +32,18 @@ namespace TestCreator
             Answers.Add(new Answer(answerD));
 
             CorrectAnswer = correctAnswer;
+        }
+        public Question(string content, List<string> answers, int correctAnswer)
+        {
+            Answers = new List<Answer>();
+
+            QuestionContent = content;
+            CorrectAnswer = correctAnswer;
+
+            foreach (string answer in answers)
+            {
+                Answers.Add(new Answer(answer));
+            }
         }
 
         #endregion

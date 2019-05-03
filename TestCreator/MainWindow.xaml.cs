@@ -22,46 +22,78 @@ namespace TestCreator
     /// </summary>
     public partial class MainWindow : Window
     {
-        private string TestName { get { return tboxName.Text; } }
-        private string TestDescr { get { return tboxDescr.Text; } }
-        private Test MyTest;
-        private int LastSelected;
+        public List<Test> ExistingTests { get; set; }
+
+        public List<string> ExistingTestsNames { get; set; }
+
+        public string SelectedTestName { get { return cboxExistingTests.SelectedValue.ToString(); } }
+
+        public string TestName { get { return tboxName.Text; } }
+
+        public string TestDescr { get { return tboxDescription.Text; } }
+
+        public Test CurrentTest { get; set; }
+
+        public int LastSelected { get; set; }
+        public int SelectedQuestionIndex { get { return questionsList.SelectedIndex; } }
+
 
         public MainWindow()
         {
             InitializeComponent();
-            MyTest = new Test("", "");
+            CurrentTest = new Test("", "");
+            LastSelected = -1;
+            LoadExistingTests();
         }
 
 
-        private void LoadTest()
-        {
-            string fileContent = File.ReadAllText(@"C:\Users\Hubert\Desktop\Test1.json");
-            Test test = JsonConvert.DeserializeObject<Test>(fileContent);
-
-            Console.WriteLine($"Nazwa testu: {test.Name}\nOpis: {test.Description}");
-        }
-
-
-        private void FillInputs(object sender, SelectionChangedEventArgs e)
-        {
-            LastSelected = questionsList.SelectedIndex;
-
-            if (LastSelected > -1)
-            {
-                Question quest = MyTest.Questions[LastSelected];
-
-                //fill inputs
-                tboxQuestion.Text = quest.QuestionContent;
-                tboxAnswerA.Text = quest.Answers[0].ToString();
-                tboxAnswerB.Text = quest.Answers[1].ToString();
-                tboxAnswerC.Text = quest.Answers[2].ToString();
-                tboxAnswerD.Text = quest.Answers[3].ToString();
-            }
-        }
-
+        #region Events functions
         private void btnAddQuestion_Click(object sender, RoutedEventArgs e)
         {
+            AddQuestion();
+        }
+
+        private void btnEditQuestion_Click(object sender, RoutedEventArgs e)
+        {
+            EditQuestion();
+        }
+
+        private void btnDeleteQuestion_Click(object sender, RoutedEventArgs e)
+        {
+            DeleteQuestion();
+        }
+
+        private void btnSaveTest_Click(object sender, RoutedEventArgs e)
+        {
+            SaveTest();
+        }
+
+        private void CboxExistingTests_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            LoadTest();
+        }
+
+        private void QuestionsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            FillQuestionInputs();
+        }
+        private void BtnDeleteTest_Click(object sender, RoutedEventArgs e)
+        {
+            DeleteTest();
+        }
+        #endregion
+
+
+
+        #region Custom functions
+        private void AddQuestion()
+        {
+            if (tboxQuestion.Text.Trim().Equals(""))
+            {
+                MessageBox.Show("Pytanie musi mieć treść", "Nie można dodać pytania", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             List<string> answers = new List<string>();
 
             answers.Add(tboxAnswerA.Text.Trim());
@@ -69,79 +101,217 @@ namespace TestCreator
             answers.Add(tboxAnswerC.Text.Trim());
             answers.Add(tboxAnswerD.Text.Trim());
 
-            if (answers[0].Equals("") && answers[1].Equals("") && answers[2].Equals("") && answers[3].Equals(""))
+            if (answers[0].Equals("") || answers[1].Equals("") || answers[2].Equals("") || answers[3].Equals(""))
             {
-                MessageBox.Show("Nie podano żadnej odpowiedzi", "", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Wszystkie odpowiedzi muszą być wypełnione", "Nie można dodać pytania", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            if (MyTest.QuestionExists(tboxQuestion.Text))
+            if (CurrentTest.QuestionExists(tboxQuestion.Text))
             {
-                MessageBox.Show("Takie pytanie już istnieje", "", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Takie pytanie już istnieje", "Nie można dodać pytania", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
-            else
-            {
-                MyTest.Questions.Add(new Question(tboxQuestion.Text, tboxAnswerA.Text, tboxAnswerB.Text, tboxAnswerC.Text, tboxAnswerD.Text, 0));
-                questionsList.Items.Add(tboxQuestion.Text);
-            }
+
+            //change item - backend
+            int correctAnswer = GetCorrectAnswer();
+            CurrentTest.Questions.Add(new Question(tboxQuestion.Text, answers, correctAnswer));
+
+            //change item - frontend
+            questionsList.ItemsSource = null;
+            questionsList.ItemsSource = CurrentTest.QuestionsNamesList();
         }
 
 
-        private void btnEditQuestion_Click(object sender, RoutedEventArgs e)
+        private void EditQuestion()
         {
-            if (LastSelected > -1)
+            if (SelectedQuestionIndex < 0)
             {
-                //change item - backend
-                MyTest.EditQuestion(LastSelected, new Question(tboxQuestion.Text, tboxAnswerA.Text, tboxAnswerB.Text, tboxAnswerC.Text, tboxAnswerD.Text, 0));
-
-                //change item - frontend
-                questionsList.Items.Insert(LastSelected, MyTest.Questions[LastSelected].QuestionContent);
-                questionsList.Items.RemoveAt(LastSelected);
-                questionsList.Items.Refresh();
+                MessageBox.Show("Nie wybrano żadnego pytania", "Nie można wykonać akcji", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
             }
+
+            //change item - backend
+            int correctAnswer = GetCorrectAnswer();
+            CurrentTest.EditQuestion(SelectedQuestionIndex, new Question(tboxQuestion.Text, tboxAnswerA.Text, tboxAnswerB.Text, tboxAnswerC.Text, tboxAnswerD.Text, correctAnswer));
+
+            //change item - frontend
+            questionsList.ItemsSource = null;
+            questionsList.ItemsSource = CurrentTest.QuestionsNamesList();
         }
 
-        private void btnDeleteQuestion_Click(object sender, RoutedEventArgs e)
+
+        private int GetCorrectAnswer()
+        {
+            if (correctA.IsChecked == true) return 0;
+            else if (correctB.IsChecked == true) return 1;
+            else if (correctC.IsChecked == true) return 2;
+            else return 3;
+        }
+
+
+        private void DeleteQuestion()
         {
             if (LastSelected > -1)
             {
+                if (MessageBox.Show("Czy na pewno chcesz usunąć wybrane pytanie?", "Ostrzeżenie", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No) return;
+      
                 //remove item - backend
-                MyTest.Questions.RemoveAt(LastSelected);
+                CurrentTest.Questions.RemoveAt(LastSelected);
 
                 //remove item - frontend
-                questionsList.Items.RemoveAt(LastSelected);
-                questionsList.Items.Refresh();
+                questionsList.ItemsSource = null;
+                questionsList.ItemsSource = CurrentTest.QuestionsNamesList();
+                ClearQuestionInputs();
 
                 LastSelected--;
             }
         }
 
 
-        private void btnSaveTest_Click(object sender, RoutedEventArgs e)
+        private void SaveTest()
         {
-            LoadTest();
-            if (TestName.Trim().Equals(""))
+            MessageBoxResult check = MessageBoxResult.Yes;
+
+            if (ExistingTestsNames.Contains(TestName))
             {
-                MessageBox.Show("Nie podano nazwy testu", "Nie można zapisać testu", MessageBoxButton.OK, MessageBoxImage.Information);
+                check = MessageBox.Show($"Test o nazwie '{TestName}' już istnieje. Chcesz go nadpisać?", "Uwaga", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             }
-            else
+
+            if (check == MessageBoxResult.Yes)
             {
-                MyTest.Name = TestName;
-                MyTest.Description = TestDescr;
-
-                string jsonContent = JsonConvert.SerializeObject(MyTest);
-
-                if (!Directory.Exists("tests"))
+                if (TestName.Trim().Equals(""))
                 {
-                    Directory.CreateDirectory("tests");
-                } 
-                File.WriteAllText($@"tests\{TestName}.json", jsonContent);
+                    MessageBox.Show("Nie podano nazwy testu", "Nie można zapisać testu", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    CurrentTest.Name = TestName;
+                    CurrentTest.Description = TestDescr;
+
+                    string jsonContent = JsonConvert.SerializeObject(CurrentTest);
+
+                    if (!Directory.Exists("tests"))
+                    {
+                        Directory.CreateDirectory("tests");
+                    }
+                    File.WriteAllText($@"tests\{TestName}.json", jsonContent);
+
+                    MessageBox.Show("Zapisano pomyślnie", "Sukces", MessageBoxButton.OK, MessageBoxImage.Hand);
+                    LoadExistingTests();
+                }
             }
         }
 
-        private void CboxExistingTests_SelectionChanged(object sender, SelectionChangedEventArgs e)
+
+        private void FillQuestionInputs()
         {
-            LoadTest();
+            if (SelectedQuestionIndex > -1)
+            {
+                Question quest = CurrentTest.Questions[SelectedQuestionIndex];
+
+                tboxQuestion.Text = quest.QuestionContent;
+                tboxAnswerA.Text = quest.Answers[0].ToString();
+                tboxAnswerB.Text = quest.Answers[1].ToString();
+                tboxAnswerC.Text = quest.Answers[2].ToString();
+                tboxAnswerD.Text = quest.Answers[3].ToString();
+
+                int correctAnswer = quest.CorrectAnswer;
+
+                //check correct answer
+                if (correctAnswer == 0) correctA.IsChecked = true;
+                else correctA.IsChecked = false;
+
+                if (correctAnswer == 1) correctB.IsChecked = true;
+                else correctB.IsChecked = false;
+
+                if (correctAnswer == 2) correctC.IsChecked = true;
+                else correctC.IsChecked = false;
+
+                if (correctAnswer == 3) correctD.IsChecked = true;
+                else correctD.IsChecked = false;
+            }
+            
+            LastSelected = SelectedQuestionIndex;
         }
+
+
+        private void LoadTest()
+        {
+            CurrentTest = GetTest(SelectedTestName);
+
+            tboxName.Text = CurrentTest.Name;
+            tboxDescription.Text = CurrentTest.Description;
+            ClearQuestionInputs();
+
+            questionsList.ItemsSource = null;
+            questionsList.ItemsSource = CurrentTest.QuestionsNamesList();
+        }
+
+
+        private Test GetTest(string path)
+        {
+            string fileContent = File.ReadAllText($"tests\\{path}.json");
+            Test test = JsonConvert.DeserializeObject<Test>(fileContent);
+
+            return test;
+        }
+
+        
+        private void LoadExistingTests()
+        {
+            ExistingTests = new List<Test>();
+            ExistingTestsNames = new List<string>();
+
+            foreach (string path in Directory.GetFiles("tests"))
+            {
+                string fileName = System.IO.Path.GetFileNameWithoutExtension(path);
+                Test test = GetTest(fileName);
+
+                ExistingTests.Add(test);
+                ExistingTestsNames.Add(test.Name);
+            }
+
+            cboxExistingTests.ItemsSource = null;
+            cboxExistingTests.ItemsSource = ExistingTestsNames;
+        }
+
+
+        private void DeleteTest()
+        {
+            if (CurrentTest.Name.Equals(""))
+            {
+                MessageBox.Show("Nie wybrano żadnego testu", "Nie można wykonać akcji", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            MessageBoxResult result = MessageBox.Show($"Czy na pewno chcesz usunąć test '{CurrentTest.Name}'?", "Ostrzeżenie", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.No) return;
+                
+            File.Delete($@"tests\{TestName}.json");
+            ClearAllInputs();
+            LoadExistingTests();
+        }
+
+
+        private void ClearAllInputs()
+        {
+            tboxName.Text = "";
+            tboxDescription.Text = "";
+            ClearQuestionInputs();
+        }
+
+        private void ClearQuestionInputs()
+        {
+            tboxQuestion.Text = "";
+            tboxAnswerA.Text = "";
+            tboxAnswerB.Text = "";
+            tboxAnswerC.Text = "";
+            tboxAnswerD.Text = "";
+            correctA.IsChecked = true;
+        }
+        #endregion
+
+        
     }
 }

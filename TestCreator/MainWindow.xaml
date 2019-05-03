@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TestCreator"
         mc:Ignorable="d"
-        Title="MainWindow" Height="550" Width="700">
+        Title="MainWindow" Height="600" Width="800">
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -14,37 +14,53 @@
 
         <StackPanel Grid.Column="0"
                     Margin="0 0 5 0">
+            
             <!-- Test selection -->
             <TextBlock>Wybierz test, jeżeli chcesz edytować</TextBlock>
-            <ComboBox x:Name="cboxExistingTests"
-                      Margin="0 0 0 20"
-                      SelectionChanged="CboxExistingTests_SelectionChanged">
-            </ComboBox>
+            <Grid Margin="0 0 0 15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="4*"/>
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0 0 5 0">
+                    <ComboBox x:Name="cboxExistingTests"
+                              SelectionChanged="CboxExistingTests_SelectionChanged">    
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Margin="5 0 0 0">
+                    <Button x:Name="btnDeleteTest" 
+                            Height="22"
+                            Click="BtnDeleteTest_Click">Usuń test</Button>
+                </StackPanel>
+            </Grid>
+            
             <!-- End of test selection -->
             
             <!-- Title and desctiption -->
-            <TextBlock Text="Tytuł" />
-            <TextBox x:Name="tboxName"
-                Margin="0 0 0 10" FontSize="14" Padding="2"/>
+            <TextBlock Text="Nazwa testu" />
+            <TextBox x:Name="tboxName"    
+                     Margin="0 0 0 10" FontSize="14" Padding="2"/>
 
             <TextBlock Text="Opis" />
-            <TextBox x:Name="tboxDescr" TextWrapping="Wrap" Height="50" Margin="0 0 0 30"/>
+            <TextBox x:Name="tboxDescription" TextWrapping="Wrap" Height="70" Margin="0 0 0 30"/>
             <!-- End of title and desctiption -->
 
             <!-- Question -->
             <StackPanel>
                 <TextBlock Text="Pytanie" />
-                <TextBox x:Name="tboxQuestion" Margin="0 0 0 20"/>
+                <TextBox x:Name="tboxQuestion" Margin="0 0 0 10"/>
                 
                 <!-- Answers -->
-                <StackPanel>
-                    <Grid Margin="0 0 0 10">
+                <StackPanel Margin="0 0 0 20">
+                    <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="5*"/>
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0" Margin="0 0 10 0">
+                        <StackPanel Grid.Column="0" Margin="0 0 5 0">
                             <TextBlock Text="Odpowiedź a" />
                             <TextBox x:Name="tboxAnswerA" />
 
@@ -61,7 +77,7 @@
 
                         <StackPanel Grid.Column="1">
                             <TextBlock Text="Poprawna" HorizontalAlignment="Center"/>
-
+                            
                             <RadioButton x:Name="correctA" IsChecked="True" Margin="0 0 0 21" HorizontalAlignment="Center"/>
                             <RadioButton x:Name="correctB" Margin="0 0 0 21" HorizontalAlignment="Center"/>
                             <RadioButton x:Name="correctC" Margin="0 0 0 21" HorizontalAlignment="Center"/>
@@ -107,8 +123,8 @@
 
             <!-- Save test button -->
             <Button x:Name="btnSaveTest"
-                    Width="200" Height="25" 
-                    Margin="0 0 0 10" Click="btnSaveTest_Click">Zapisz test</Button>
+                    Width="auto" Height="30" 
+                    Margin="5 0" Click="btnSaveTest_Click">Zapisz test</Button>
         </StackPanel>
 
         <!-- List of questions -->
@@ -119,7 +135,7 @@
                      Height="350"
                      VerticalAlignment="Center"
                      
-                     SelectionChanged="FillInputs">
+                     SelectionChanged="QuestionsList_SelectionChanged">
             </ListBox>
         </StackPanel>
         <!-- End of list of questions -->

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TestCreator
 {
-    class Answer
+    public class Answer
     {
         public string AnswerContent { get; set; }
 

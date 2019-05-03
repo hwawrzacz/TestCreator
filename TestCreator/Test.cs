@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TestCreator
 {
-    class Test
+    public class Test
     {
         #region Properties
 
@@ -40,7 +40,6 @@ namespace TestCreator
 
 
         #region Functions
-
         public bool QuestionExists(string question)
         {
             int occurrence = 0;
@@ -72,6 +71,18 @@ namespace TestCreator
             Questions.Insert(index, newQuestion);
         }
 
+
+        public List<string> QuestionsNamesList()
+        {
+            List<string> names = new List<string>();
+
+            foreach (Question quest in Questions)
+            {
+                names.Add(quest.QuestionContent);
+            }
+
+            return names;
+        }
         #endregion
     }
 }
