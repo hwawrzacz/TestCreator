@@ -1,0 +1,127 @@
+﻿<Window x:Class="TestCreator.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TestCreator"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="550" Width="700">
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0"
+                    Margin="0 0 5 0">
+            <!-- Test selection -->
+            <TextBlock>Wybierz test, jeżeli chcesz edytować</TextBlock>
+            <ComboBox x:Name="cboxExistingTests"
+                      Margin="0 0 0 20"
+                      SelectionChanged="CboxExistingTests_SelectionChanged">
+            </ComboBox>
+            <!-- End of test selection -->
+            
+            <!-- Title and desctiption -->
+            <TextBlock Text="Tytuł" />
+            <TextBox x:Name="tboxName"
+                Margin="0 0 0 10" FontSize="14" Padding="2"/>
+
+            <TextBlock Text="Opis" />
+            <TextBox x:Name="tboxDescr" TextWrapping="Wrap" Height="50" Margin="0 0 0 30"/>
+            <!-- End of title and desctiption -->
+
+            <!-- Question -->
+            <StackPanel>
+                <TextBlock Text="Pytanie" />
+                <TextBox x:Name="tboxQuestion" Margin="0 0 0 20"/>
+                
+                <!-- Answers -->
+                <StackPanel>
+                    <Grid Margin="0 0 0 10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="5*"/>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0 0 10 0">
+                            <TextBlock Text="Odpowiedź a" />
+                            <TextBox x:Name="tboxAnswerA" />
+
+                            <TextBlock Text="Odpowiedź b" />
+                            <TextBox x:Name="tboxAnswerB" />
+
+                            <TextBlock Text="Odpowiedź c" />
+                            <TextBox x:Name="tboxAnswerC" />
+
+
+                            <TextBlock Text="Odpowiedź d" />
+                            <TextBox x:Name="tboxAnswerD" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Poprawna" HorizontalAlignment="Center"/>
+
+                            <RadioButton x:Name="correctA" IsChecked="True" Margin="0 0 0 21" HorizontalAlignment="Center"/>
+                            <RadioButton x:Name="correctB" Margin="0 0 0 21" HorizontalAlignment="Center"/>
+                            <RadioButton x:Name="correctC" Margin="0 0 0 21" HorizontalAlignment="Center"/>
+                            <RadioButton x:Name="correctD" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+                <!-- End of answers -->
+
+                <!-- Question buttons -->
+                <Grid Margin="0 0 0 10" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <Button x:Name="btnAddQuestion"
+                            Width="100" Height="25"
+                            Click="btnAddQuestion_Click">Dodaj pytanie</Button>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1">
+                        <Button x:Name="btnEditQuestion"
+                            Grid.Column="1"
+                            Width="100" Height="25"
+                        
+                            Click="btnEditQuestion_Click">Nadpisz pytanie</Button>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <Button x:Name="btnDeleteQuestion"
+                            Grid.Column="1"
+                            Width="100" Height="25"
+                        
+                            Click="btnDeleteQuestion_Click">Usuń pytanie</Button>
+                    </StackPanel>
+                </Grid>
+                <!-- End of question buttons -->
+            </StackPanel>
+            <!-- End of question -->
+
+            <!-- Save test button -->
+            <Button x:Name="btnSaveTest"
+                    Width="200" Height="25" 
+                    Margin="0 0 0 10" Click="btnSaveTest_Click">Zapisz test</Button>
+        </StackPanel>
+
+        <!-- List of questions -->
+        <StackPanel Grid.Column="1"
+                    Margin="5 0 0 0">
+            <TextBlock>Questions</TextBlock>
+            <ListBox x:Name="questionsList"
+                     Height="350"
+                     VerticalAlignment="Center"
+                     
+                     SelectionChanged="FillInputs">
+            </ListBox>
+        </StackPanel>
+        <!-- End of list of questions -->
+    </Grid>
+</Window>
