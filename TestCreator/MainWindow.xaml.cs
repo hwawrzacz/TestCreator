@@ -22,7 +22,6 @@ namespace TestCreator
     /// </summary>
     public partial class MainWindow : Window
     {
-        public List<Test> ExistingTests { get; set; }
 
         public List<string> ExistingTestsNames { get; set; }
 
@@ -77,9 +76,27 @@ namespace TestCreator
         {
             FillQuestionInputs();
         }
+
         private void BtnDeleteTest_Click(object sender, RoutedEventArgs e)
         {
             DeleteTest();
+        }
+
+        private void BtnNewTest_Click(object sender, RoutedEventArgs e)
+        {
+            CurrentTest = new Test("", "");
+            ClearAllInputs();
+            ClearQuestionsList();
+        }
+
+        private void TboxName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            updatePreviewName();
+        }
+
+        private void TboxDescription_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            updatePreviewDescription();
         }
         #endregion
 
@@ -90,7 +107,7 @@ namespace TestCreator
         {
             if (tboxQuestion.Text.Trim().Equals(""))
             {
-                MessageBox.Show("Pytanie musi mieć treść", "Nie można dodać pytania", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Pytanie musi mieć treść", "Nie można dodać pytania", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -103,13 +120,13 @@ namespace TestCreator
 
             if (answers[0].Equals("") || answers[1].Equals("") || answers[2].Equals("") || answers[3].Equals(""))
             {
-                MessageBox.Show("Wszystkie odpowiedzi muszą być wypełnione", "Nie można dodać pytania", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Wszystkie odpowiedzi muszą być wypełnione", "Nie można dodać pytania", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
             if (CurrentTest.QuestionExists(tboxQuestion.Text))
             {
-                MessageBox.Show("Takie pytanie już istnieje", "Nie można dodać pytania", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Takie pytanie już istnieje", "Nie można dodać pytania", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -118,8 +135,7 @@ namespace TestCreator
             CurrentTest.Questions.Add(new Question(tboxQuestion.Text, answers, correctAnswer));
 
             //change item - frontend
-            questionsList.ItemsSource = null;
-            questionsList.ItemsSource = CurrentTest.QuestionsNamesList();
+            UpdateQuestions();
         }
 
 
@@ -136,8 +152,7 @@ namespace TestCreator
             CurrentTest.EditQuestion(SelectedQuestionIndex, new Question(tboxQuestion.Text, tboxAnswerA.Text, tboxAnswerB.Text, tboxAnswerC.Text, tboxAnswerD.Text, correctAnswer));
 
             //change item - frontend
-            questionsList.ItemsSource = null;
-            questionsList.ItemsSource = CurrentTest.QuestionsNamesList();
+            UpdateQuestions();
         }
 
 
@@ -160,8 +175,7 @@ namespace TestCreator
                 CurrentTest.Questions.RemoveAt(LastSelected);
 
                 //remove item - frontend
-                questionsList.ItemsSource = null;
-                questionsList.ItemsSource = CurrentTest.QuestionsNamesList();
+                UpdateQuestions();
                 ClearQuestionInputs();
 
                 LastSelected--;
@@ -197,10 +211,27 @@ namespace TestCreator
                     }
                     File.WriteAllText($@"tests\{TestName}.json", jsonContent);
 
-                    MessageBox.Show("Zapisano pomyślnie", "Sukces", MessageBoxButton.OK, MessageBoxImage.Hand);
+                    MessageBox.Show("Zapisano pomyślnie", "Sukces", MessageBoxButton.OK, MessageBoxImage.Information);
                     LoadExistingTests();
                 }
             }
+        }
+
+
+        private void DeleteTest()
+        {
+            if (CurrentTest.Name.Equals(""))
+            {
+                MessageBox.Show("Nie wybrano żadnego testu", "Nie można wykonać akcji", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            MessageBoxResult result = MessageBox.Show($"Czy na pewno chcesz usunąć test '{CurrentTest.Name}'?", "Ostrzeżenie", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.No) return;
+
+            File.Delete($@"tests\{TestName}.json");
+            ClearAllInputs();
+            LoadExistingTests();
         }
 
 
@@ -238,14 +269,16 @@ namespace TestCreator
 
         private void LoadTest()
         {
-            CurrentTest = GetTest(SelectedTestName);
+            if (cboxExistingTests.SelectedIndex > -1)
+            {
+                CurrentTest = GetTest(SelectedTestName);
 
-            tboxName.Text = CurrentTest.Name;
-            tboxDescription.Text = CurrentTest.Description;
-            ClearQuestionInputs();
+                tboxName.Text = CurrentTest.Name;
+                tboxDescription.Text = CurrentTest.Description;
+                ClearQuestionInputs();
 
-            questionsList.ItemsSource = null;
-            questionsList.ItemsSource = CurrentTest.QuestionsNamesList();
+                UpdateQuestions();
+            }
         }
 
 
@@ -260,7 +293,6 @@ namespace TestCreator
         
         private void LoadExistingTests()
         {
-            ExistingTests = new List<Test>();
             ExistingTestsNames = new List<string>();
 
             foreach (string path in Directory.GetFiles("tests"))
@@ -268,7 +300,6 @@ namespace TestCreator
                 string fileName = System.IO.Path.GetFileNameWithoutExtension(path);
                 Test test = GetTest(fileName);
 
-                ExistingTests.Add(test);
                 ExistingTestsNames.Add(test.Name);
             }
 
@@ -277,23 +308,17 @@ namespace TestCreator
         }
 
 
-        private void DeleteTest()
+        private void UpdateQuestions()
         {
-            if (CurrentTest.Name.Equals(""))
-            {
-                MessageBox.Show("Nie wybrano żadnego testu", "Nie można wykonać akcji", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-            MessageBoxResult result = MessageBox.Show($"Czy na pewno chcesz usunąć test '{CurrentTest.Name}'?", "Ostrzeżenie", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-            if (result == MessageBoxResult.No) return;
-                
-            File.Delete($@"tests\{TestName}.json");
-            ClearAllInputs();
-            LoadExistingTests();
+            questionsList.ItemsSource = null;
+            questionsList.ItemsSource = CurrentTest.QuestionsNamesList();
         }
+        #endregion
 
 
+
+        //cleaning etc.
+        #region View manipulation functions
         private void ClearAllInputs()
         {
             tboxName.Text = "";
@@ -310,8 +335,25 @@ namespace TestCreator
             tboxAnswerD.Text = "";
             correctA.IsChecked = true;
         }
-        #endregion
 
-        
+
+        private void ClearQuestionsList()
+        {
+            questionsList.ItemsSource = null;
+        }
+
+
+        private void updatePreviewName()
+        {
+            if (!tboxName.Text.Equals("")) testNamePreview.Text = tboxName.Text;
+            else testNamePreview.Text = "Nowy test";
+        }
+
+
+        private void updatePreviewDescription()
+        {
+            testDescriptionPreview.Text = tboxDescription.Text;
+        }
+        #endregion
     }
 }
