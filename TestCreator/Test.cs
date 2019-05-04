@@ -9,16 +9,13 @@ namespace TestCreator
     public class Test
     {
         #region Properties
-
         public string Name { get; set; }
         public string Description { get; set; }
         public List<Question> Questions { get; set; }
-
         #endregion
 
 
         #region Constructors
-
         // default constructor for json deserializer
         public Test() { }
 
@@ -35,7 +32,6 @@ namespace TestCreator
             Description = description;
             Questions = questions;
         }
-
         #endregion
 
 

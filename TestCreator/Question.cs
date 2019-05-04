@@ -13,12 +13,11 @@ namespace TestCreator
         public string QuestionContent { get; set; }
         public List<Answer> Answers { get; set; }
         public int CorrectAnswer { get; set; }
-
         #endregion
 
 
         #region Constructors
-
+        // default constructor for json deserializer
         public Question() { }
         public Question(string content, string answerA, string answerB, string answerC, string answerD, int correctAnswer)
         {
@@ -45,12 +44,6 @@ namespace TestCreator
                 Answers.Add(new Answer(answer));
             }
         }
-
-        #endregion
-
-
-        #region Functions
-
         #endregion
     }
 }
