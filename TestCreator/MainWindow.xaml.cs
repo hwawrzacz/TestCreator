@@ -42,7 +42,6 @@ namespace TestCreator
             InitializeComponent();
             CurrentTest = new Test("", "");
             LastSelected = -1;
-            LoadExistingTests();
         }
 
 
@@ -70,6 +69,11 @@ namespace TestCreator
         private void CboxExistingTests_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             LoadTest();
+        }
+        private void CboxExistingTests_DropDownOpened(object sender, EventArgs e)
+        {
+            LoadExistingTests();
+            Console.WriteLine("Dropdown called");
         }
 
         private void QuestionsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -170,7 +174,7 @@ namespace TestCreator
             if (LastSelected > -1)
             {
                 if (MessageBox.Show("Czy na pewno chcesz usunąć wybrane pytanie?", "Ostrzeżenie", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No) return;
-      
+
                 //remove item - backend
                 CurrentTest.Questions.RemoveAt(LastSelected);
 
@@ -262,7 +266,7 @@ namespace TestCreator
                 if (correctAnswer == 3) correctD.IsChecked = true;
                 else correctD.IsChecked = false;
             }
-            
+
             LastSelected = SelectedQuestionIndex;
         }
 
@@ -271,7 +275,7 @@ namespace TestCreator
         {
             if (cboxExistingTests.SelectedIndex > -1)
             {
-                CurrentTest = GetTest(SelectedTestName);
+                CurrentTest = GetTestFromFile(SelectedTestName);
 
                 tboxName.Text = CurrentTest.Name;
                 tboxDescription.Text = CurrentTest.Description;
@@ -282,7 +286,7 @@ namespace TestCreator
         }
 
 
-        private Test GetTest(string path)
+        private Test GetTestFromFile(string path)
         {
             string fileContent = File.ReadAllText($"tests\\{path}.json");
             Test test = JsonConvert.DeserializeObject<Test>(fileContent);
@@ -290,17 +294,18 @@ namespace TestCreator
             return test;
         }
 
-        
+
         private void LoadExistingTests()
         {
             ExistingTestsNames = new List<string>();
 
             foreach (string path in Directory.GetFiles("tests"))
             {
-                string fileName = System.IO.Path.GetFileNameWithoutExtension(path);
-                Test test = GetTest(fileName);
-
-                ExistingTestsNames.Add(test.Name);
+                if (System.IO.Path.GetExtension(path).Equals(".json"))
+                {
+                    string fileName = System.IO.Path.GetFileNameWithoutExtension(path);
+                    ExistingTestsNames.Add(fileName);
+                }
             }
 
             cboxExistingTests.ItemsSource = null;
